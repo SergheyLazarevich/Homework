@@ -19,9 +19,10 @@ public class StudentMap implements Map<Student, Integer> {
         }
     }
 
-    static class Entry<K,V> {
+    static class Entry<K, V> {
         K key;
         V value;
+
         public Entry(K key, V value) {
             this.key = key;
             this.value = value;
@@ -47,7 +48,7 @@ public class StudentMap implements Map<Student, Integer> {
         int index = getIndex((Student) key);
         LinkedList<Entry<Student, Integer>> list = table[index];
         for (Entry<Student, Integer> entry : list) {
-            if(entry.key.equals(key)) {
+            if (entry.key.equals(key)) {
                 return true;
             }
         }
@@ -58,7 +59,7 @@ public class StudentMap implements Map<Student, Integer> {
     public boolean containsValue(Object value) {
         for (LinkedList<Entry<Student, Integer>> list : table) {
             for (Entry<Student, Integer> entry : list) {
-                if(entry.value.equals(value)) {
+                if (entry.value.equals(value)) {
                     return true;
                 }
             }
@@ -72,14 +73,14 @@ public class StudentMap implements Map<Student, Integer> {
         int index = getIndex((Student) key);
         LinkedList<Entry<Student, Integer>> list = table[index];
         for (Entry<Student, Integer> entry : list) {
-            if(entry.key.equals(key)) {
+            if (entry.key.equals(key)) {
                 return entry.value;
             }
         }
         return null;
     }
 
-    private void resize(){
+    private void resize() {
         int newCapacity = table.length * 2;
         LinkedList<Entry<Student, Integer>>[] newTable = new LinkedList[newCapacity];
         for (int i = 0; i < newCapacity; i++) {
@@ -106,7 +107,7 @@ public class StudentMap implements Map<Student, Integer> {
         int index = getIndex(key);
         LinkedList<Entry<Student, Integer>> list = table[index];
         for (Entry<Student, Integer> entry : list) {
-            if(entry.key.equals(key)) {
+            if (entry.key.equals(key)) {
                 Integer oldValue = entry.value;
                 entry.value = value;
                 return oldValue;
@@ -124,7 +125,7 @@ public class StudentMap implements Map<Student, Integer> {
         LinkedList<Entry<Student, Integer>> list = table[index];
         for (Iterator<Entry<Student, Integer>> iterator = list.iterator(); iterator.hasNext(); ) {
             Entry<Student, Integer> entry = iterator.next();
-            if(entry.key.equals(key)) {
+            if (entry.key.equals(key)) {
                 iterator.remove();
                 size--;
                 return entry.value;
@@ -132,7 +133,17 @@ public class StudentMap implements Map<Student, Integer> {
         }
         return null;
 
+    }
+
+
+    @Override
+    public void putAll(Map<? extends Student, ? extends Integer> m) {
+        for (Map.Entry<? extends Student, ? extends Integer> entry : m.entrySet()) {
+            put(entry.getKey(), entry.getValue());
         }
+    }
+
+   
 
 
 }
