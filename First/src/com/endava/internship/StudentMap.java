@@ -1,5 +1,6 @@
 package com.endava.internship;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -102,8 +103,6 @@ public class StudentMap implements Map<Student, Integer> {
             resize();
         }
 
-
-
         int index = getIndex(key);
         LinkedList<Entry<Student, Integer>> list = table[index];
         for (Entry<Student, Integer> entry : list) {
@@ -119,6 +118,21 @@ public class StudentMap implements Map<Student, Integer> {
         return null;
     }
 
-    
+    @Override
+    public Integer remove(Object key) {
+        int index = getIndex((Student) key);
+        LinkedList<Entry<Student, Integer>> list = table[index];
+        for (Iterator<Entry<Student, Integer>> iterator = list.iterator(); iterator.hasNext(); ) {
+            Entry<Student, Integer> entry = iterator.next();
+            if(entry.key.equals(key)) {
+                iterator.remove();
+                size--;
+                return entry.value;
+            }
+        }
+        return null;
+
+        }
+
 
 }
