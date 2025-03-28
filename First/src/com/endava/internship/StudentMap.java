@@ -7,6 +7,9 @@ public class StudentMap implements Map<Student, Integer> {
 
     private static final int INITIAL_CAPACITY = 16;
     private LinkedList<Entry<Student, Integer>>[] table;
+    private static final float LOAD_FACTOR = 0.75f;
+
+    private int size = 0;
 
     public StudentMap() {
         table = new LinkedList[INITIAL_CAPACITY];
@@ -30,11 +33,6 @@ public class StudentMap implements Map<Student, Integer> {
 
     @Override
     public int size() {
-        int size = 0;
-        for (LinkedList<Entry<Student, Integer>> list : table) {
-                size += list.size();
-
-        }
         return size;
     }
 
@@ -79,4 +77,48 @@ public class StudentMap implements Map<Student, Integer> {
         }
         return null;
     }
+
+    private void resize(){
+        int newCapacity = table.length * 2;
+        LinkedList<Entry<Student, Integer>>[] newTable = new LinkedList[newCapacity];
+        for (int i = 0; i < newCapacity; i++) {
+            newTable[i] = new LinkedList<>();
+        }
+
+        for (LinkedList<Entry<Student, Integer>> list : table) {
+            for (Entry<Student, Integer> entry : list) {
+                int newIndex = entry.key.hashCode() % newCapacity;
+                newTable[newIndex].add(entry);
+            }
+        }
+        table = newTable;
+
+    }
+
+    @Override
+    public Integer put(Student key, Integer value) {
+
+        if (size >= table.length * LOAD_FACTOR) {
+            resize();
+        }
+
+
+
+        int index = getIndex(key);
+        LinkedList<Entry<Student, Integer>> list = table[index];
+        for (Entry<Student, Integer> entry : list) {
+            if(entry.key.equals(key)) {
+                Integer oldValue = entry.value;
+                entry.value = value;
+                return oldValue;
+
+            }
+        }
+        list.add(new Entry(key, value));
+        size++;
+        return null;
+    }
+
+    
+
 }
