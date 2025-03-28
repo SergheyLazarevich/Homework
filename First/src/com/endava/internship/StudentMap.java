@@ -143,7 +143,13 @@ public class StudentMap implements Map<Student, Integer> {
         }
     }
 
-   
+    @Override
+    public void clear() {
+        for (int i = 0; i < table.length; i++) {
+            table[i].clear();
+        }
+        size = 0;
+    }
 
 
 }
