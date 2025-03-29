@@ -4,45 +4,35 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 public class Student {
-
-
-    private String name;
-    private LocalDate dateOfBirth;
-    private String details;
+    private final String name;
+    private final LocalDate dateOfBirth;
+    private final String details;
 
     public Student(String name, LocalDate dateOfBirth, String details) {
-        this.name = name;
-        this.dateOfBirth = dateOfBirth;
-        this.details = details;
+        this.name = Objects.requireNonNull(name, "Name cannot be null");
+        this.dateOfBirth = Objects.requireNonNull(dateOfBirth, "Date of birth cannot be null");
+        this.details = details == null ? "No details available" : details;
     }
 
     public String getName() { return name; }
     public LocalDate getDateOfBirth() { return dateOfBirth; }
     public String getDetails() { return details; }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Student student = (Student) o;
-
-        return name != null && name.equals(student.name) &&
-               dateOfBirth != null && dateOfBirth.equals(student.dateOfBirth) ;
+        if (!(o instanceof Student student)) return false;
+        return Objects.equals(name, student.name) &&
+                Objects.equals(dateOfBirth, student.dateOfBirth);
     }
 
     @Override
     public int hashCode() {
-        int result = name.hashCode();
-        result = 31 * result + dateOfBirth.hashCode();
-        return result;
+        return Objects.hash(name, dateOfBirth);
     }
 
     @Override
     public String toString() {
-        return "Student [name=" + name + ", dateOfBirth=" + dateOfBirth + ", details=";
+        return String.format("Student[name=%s, dateOfBirth=%s, details=%s]", name, dateOfBirth, details);
     }
-
-
 }

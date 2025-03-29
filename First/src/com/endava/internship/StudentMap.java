@@ -1,54 +1,73 @@
 package com.endava.internship;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 public class StudentMap implements Map<Student, Integer> {
-
     private static final int INITIAL_CAPACITY = 16;
-    private LinkedList<Entry<Student, Integer>>[] table;
     private static final float LOAD_FACTOR = 0.75f;
-
     private int size = 0;
+    private Entry<Student, Integer>[] table;
 
     public StudentMap() {
-        table = new LinkedList[INITIAL_CAPACITY];
-        for (int i = 0; i < INITIAL_CAPACITY; i++) {
-            table[i] = new LinkedList<>();
-        }
+        table = new Entry[INITIAL_CAPACITY];
     }
 
-    static class Entry<K, V> {
-        K key;
+    static class Entry<K, V> implements Map.Entry<K, V> {
+        final K key;
         V value;
 
-        public Entry(K key, V value) {
+        Entry(K key, V value) {
             this.key = key;
             this.value = value;
         }
+
+        @Override
+        public K getKey() { return key; }
+
+        @Override
+        public V getValue() { return value; }
+
+        @Override
+        public V setValue(V value) {
+            V oldValue = this.value;
+            this.value = value;
+            return oldValue;
+        }
     }
 
-    private int getIndex(Student key) {
-        return key.hashCode() % table.length;
+    private int getIndex(Object key) {
+        return (key.hashCode() & 0x7FFFFFFF) % table.length;
+    }
+
+    private void resize() {
+        Entry<Student, Integer>[] oldTable = table;
+        table = new Entry[table.length * 2];
+        size = 0;
+
+        for (Entry<Student, Integer> entry : oldTable) {
+            if (entry != null) {
+                put(entry.key, entry.value);
+            }
+        }
     }
 
     @Override
-    public int size() {
-        return size;
-    }
+    public int size() { return size; }
 
     @Override
-    public boolean isEmpty() {
-        return size() == 0;
-    }
+    public boolean isEmpty() { return size == 0; }
 
     @Override
     public boolean containsKey(Object key) {
-        int index = getIndex((Student) key);
-        LinkedList<Entry<Student, Integer>> list = table[index];
-        for (Entry<Student, Integer> entry : list) {
-            if (entry.key.equals(key)) {
+        int index = getIndex(key);
+        Entry<Student, Integer> entry = table[index];
+        return entry != null && entry.key.equals(key);
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        for (Entry<Student, Integer> entry : table) {
+            if (entry != null && entry.value.equals(value)) {
                 return true;
             }
         }
@@ -56,85 +75,45 @@ public class StudentMap implements Map<Student, Integer> {
     }
 
     @Override
-    public boolean containsValue(Object value) {
-        for (LinkedList<Entry<Student, Integer>> list : table) {
-            for (Entry<Student, Integer> entry : list) {
-                if (entry.value.equals(value)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-
-    @Override
     public Integer get(Object key) {
-        int index = getIndex((Student) key);
-        LinkedList<Entry<Student, Integer>> list = table[index];
-        for (Entry<Student, Integer> entry : list) {
-            if (entry.key.equals(key)) {
-                return entry.value;
-            }
-        }
-        return null;
-    }
-
-    private void resize() {
-        int newCapacity = table.length * 2;
-        LinkedList<Entry<Student, Integer>>[] newTable = new LinkedList[newCapacity];
-        for (int i = 0; i < newCapacity; i++) {
-            newTable[i] = new LinkedList<>();
-        }
-
-        for (LinkedList<Entry<Student, Integer>> list : table) {
-            for (Entry<Student, Integer> entry : list) {
-                int newIndex = entry.key.hashCode() % newCapacity;
-                newTable[newIndex].add(entry);
-            }
-        }
-        table = newTable;
-
+        int index = getIndex(key);
+        Entry<Student, Integer> entry = table[index];
+        return (entry != null && entry.key.equals(key)) ? entry.value : null;
     }
 
     @Override
     public Integer put(Student key, Integer value) {
-
         if (size >= table.length * LOAD_FACTOR) {
             resize();
         }
 
         int index = getIndex(key);
-        LinkedList<Entry<Student, Integer>> list = table[index];
-        for (Entry<Student, Integer> entry : list) {
-            if (entry.key.equals(key)) {
-                Integer oldValue = entry.value;
-                entry.value = value;
-                return oldValue;
-
-            }
+        while (table[index] != null && !table[index].key.equals(key)) {
+            index = (index + 1) % table.length;
         }
-        list.add(new Entry(key, value));
-        size++;
-        return null;
+
+        if (table[index] == null) {
+            size++;
+        }
+
+        table[index] = new Entry<>(key, value);
+        return value;
     }
 
     @Override
     public Integer remove(Object key) {
-        int index = getIndex((Student) key);
-        LinkedList<Entry<Student, Integer>> list = table[index];
-        for (Iterator<Entry<Student, Integer>> iterator = list.iterator(); iterator.hasNext(); ) {
-            Entry<Student, Integer> entry = iterator.next();
-            if (entry.key.equals(key)) {
-                iterator.remove();
+        int index = getIndex(key);
+        while (table[index] != null) {
+            if (table[index].key.equals(key)) {
+                Integer oldValue = table[index].value;
+                table[index] = null;
                 size--;
-                return entry.value;
+                return oldValue;
             }
+            index = (index + 1) % table.length;
         }
         return null;
-
     }
-
 
     @Override
     public void putAll(Map<? extends Student, ? extends Integer> m) {
@@ -145,11 +124,34 @@ public class StudentMap implements Map<Student, Integer> {
 
     @Override
     public void clear() {
-        for (int i = 0; i < table.length; i++) {
-            table[i].clear();
-        }
+        Arrays.fill(table, null);
         size = 0;
     }
 
+    @Override
+    public Set<Student> keySet() {
+        Set<Student> set = new HashSet<>();
+        for (Entry<Student, Integer> entry : table) {
+            if (entry != null) {
+                set.add(entry.key);
+            }
+        }
+        return set;
+    }
 
+    @Override
+    public Collection<Integer> values() {
+        Set<Integer> set = new HashSet<>();
+        for (Entry<Student, Integer> entry : table) {
+            if (entry != null) {
+                set.add(entry.value);
+            }
+        }
+        return set;
+    }
+
+    @Override
+    public Set<Map.Entry<Student, Integer>> entrySet() {
+        throw new UnsupportedOperationException();
+    }
 }
